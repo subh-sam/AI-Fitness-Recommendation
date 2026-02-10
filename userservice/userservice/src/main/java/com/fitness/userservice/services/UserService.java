@@ -1,0 +1,62 @@
+package com.fitness.userservice.services;
+
+import com.fitness.userservice.UserRepository;
+import com.fitness.userservice.models.User;
+import com.fitness.userservice.dto.RegisterRequest;
+import com.fitness.userservice.dto.UserResponse;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+@Service
+@AllArgsConstructor
+@Slf4j
+public class UserService {
+
+    private final UserRepository repository;
+
+    public  UserResponse register(RegisterRequest request) {
+
+        if (repository.existsByEmail(request.getEmail())){
+            throw new RuntimeException("email already exist");
+        }
+
+        User user =new User();
+        user.setEmail(request.getEmail());
+        user.setFirstname(request.getFirstname());
+        user.setLastname(request.getLastname());
+        user.setPassword(request.getPassword());
+
+        User savedUser = repository.save(user);
+        UserResponse userResponse = new UserResponse();
+        userResponse.setId(savedUser.getId());
+        userResponse.setPassword(savedUser.getPassword());
+        userResponse.setEmail(savedUser.getEmail());
+        userResponse.setFirstname(savedUser.getFirstname());
+        userResponse.setLastname(savedUser.getLastname());
+        userResponse.setCreatedAt(savedUser.getCreatedAt());
+        userResponse.setUpdatedAt(savedUser.getUpdatedAt());
+
+        return userResponse;
+    }
+
+    public UserResponse getUserProfile(String userId) {
+        User user = repository.findById(userId).orElseThrow(() -> new RuntimeException("user not found"));
+
+        UserResponse userResponse = new UserResponse();
+        userResponse.setId(user.getId());
+        userResponse.setPassword(user.getPassword());
+        userResponse.setEmail(user.getEmail());
+        userResponse.setFirstname(user.getFirstname());
+        userResponse.setLastname(user.getLastname());
+        userResponse.setCreatedAt(user.getCreatedAt());
+        userResponse.setUpdatedAt(user.getUpdatedAt());
+
+        return userResponse;
+    }
+
+    public boolean existByUserId(String userId) {
+        log.info("calling user service for {}",userId);
+        return repository.existsById(userId);
+    }
+}
